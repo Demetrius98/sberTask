@@ -1,9 +1,12 @@
 package com.myProj;
 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PingPong_2 extends Thread {
     private final static ReentrantLock flag = new ReentrantLock();
+    private final static Condition condition = flag.newCondition();
+
     private String printString;
 
     PingPong_2 (String str) {
@@ -15,9 +18,9 @@ public class PingPong_2 extends Thread {
         while (true) {
             flag.lock();
             try {
+                condition.signalAll();
+                condition.await();
                 System.out.println(this.printString);
-                flag.notifyAll();
-                flag.wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
@@ -28,8 +31,8 @@ public class PingPong_2 extends Thread {
     }
 
     public static void main(String[] args) {
-        PingPongSynch ping = new PingPongSynch("ping");
-        PingPongSynch pong = new PingPongSynch("pong");
+        PingPong_2 ping = new PingPong_2("ping");
+        PingPong_2 pong = new PingPong_2("pong");
         ping.start();
         pong.start();
 

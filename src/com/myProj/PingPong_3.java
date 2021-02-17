@@ -1,35 +1,40 @@
 package com.myProj;
 
 public class PingPong_3 extends Thread {
-    private static volatile boolean flag;
-
+    private static volatile boolean flag = false;
     private String printString;
+
     PingPong_3 (String str) {
         this.printString = str;
     }
 
+    public void ping () {
+        while (flag) {}
+        System.out.println("ping");
+        flag = true;
+    }
+
+    public void pong () {
+        while (!flag) {}
+        System.out.println("pong");
+        flag = false;
+    }
+
     @Override
     public void run () {
-        flag = true;
-
-        while (flag) {
-            flag = false;
-            System.out.println(this.printString);
-            this.notifyAll();
-
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        while (true) {
+            if (printString.equals("ping")) {
+                ping();
+            } else {
+                pong();
             }
-            flag = true;
-        }
 
+        }
     }
 
     public static void main(String[] args) {
-        PingPongSynch ping = new PingPongSynch("ping");
-        PingPongSynch pong = new PingPongSynch("pong");
+        PingPong_3 ping = new PingPong_3("ping");
+        PingPong_3 pong = new PingPong_3("pong");
         ping.start();
         pong.start();
     }
