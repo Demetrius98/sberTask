@@ -7,7 +7,7 @@ public class PingPong_2 extends Thread {
     private final static ReentrantLock flag = new ReentrantLock();
     private final static Condition condition = flag.newCondition();
 
-    private String printString;
+    private final String printString;
 
     PingPong_2 (String str) {
         this.printString = str;

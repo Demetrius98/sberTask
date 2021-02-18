@@ -2,7 +2,7 @@ package com.myProj;
 
 public class PingPong_3 extends Thread {
     private static volatile boolean flag = false;
-    private String printString;
+    private final String printString;
 
     PingPong_3 (String str) {
         this.printString = str;

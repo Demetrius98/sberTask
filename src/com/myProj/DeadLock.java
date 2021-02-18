@@ -2,27 +2,26 @@ package com.myProj;
 
 public class DeadLock extends Thread {
     private static final Object first = new Object();
-    private static final Object second = new Object();
+    private static final  Object second = new Object();
 
     private void doSomething() {
         System.out.println("Hello");
     }
-
     private void doSomethingElse() {
         System.out.println("Bye!");
     }
 
     public void firstSecond() {
-        synchronized (first) {
-            synchronized (second) {
+        synchronized (first) { // 1
+            synchronized (second) {   //3
                 doSomething();
             }
         }
     }
 
     public void secondFirst() {
-        synchronized (second) {
-            synchronized (first) {
+        synchronized (second) {    //2
+            synchronized (first) { //4
                 doSomethingElse();
             }
         }

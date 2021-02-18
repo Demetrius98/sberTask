@@ -1,81 +1,70 @@
 package com.myProj;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 public class GuaranteedDeadLock extends Thread {
-    private final static ReentrantLock firstLock = new ReentrantLock();
-    private final static ReentrantLock secondLock = new ReentrantLock();
-    private static volatile boolean flag;
-    private int idThread;
+    private static final Object first = new Object();
+    private static final  Object second = new Object();
+    private final int number;
+    private static final CyclicBarrier barrier = new CyclicBarrier(2 );
 
-    public GuaranteedDeadLock(int idThread) {
-        this.idThread = idThread;
+    private void doSomething() {
+        System.out.println("Hello");
+    }
+    private void doSomethingElse() {
+        System.out.println("Bye!");
     }
 
-    private void firstSecondMeth () {
-        firstLock.lock();
-        try {
-            flag = true;
-
-            GuaranteedDeadLock th_2 = new GuaranteedDeadLock(2);
-            th_2.start();
-
-            while (flag == true) {}
-
-            secondLock.lock();
-            try {
-                System.out.println("Hello!");
-            }
-            finally {
-                secondLock.unlock();
-            }
-
-        }
-        finally {
-            firstLock.unlock();
-        }
-
+    public GuaranteedDeadLock(int number) {
+        this.number = number;
     }
 
-    private void secondFirstMeth () {
-        secondLock.lock();
-        try {
-            flag = false;
 
-            firstLock.lock();
+    public void firstSecond() {
+        synchronized (first) { // 1
             try {
-                System.out.println("Bye!");
-            }
-            finally {
-                firstLock.unlock();
+                barrier.await();
+            } catch (BrokenBarrierException | InterruptedException ignored) {
             }
 
+            System.out.println("Barrier of the 'firstSecond' passed!");
+            synchronized (second) {   //3
+                doSomething();
+            }
         }
-        finally {
-            secondLock.unlock();
-        }
+    }
 
+    public void secondFirst() {
+        synchronized (second) {    //2
+            try {
+                barrier.await();
+            } catch (BrokenBarrierException | InterruptedException ignored) {
+            }
+            System.out.println("Barrier of the 'secondFirst' passed!");
+            synchronized (first) { //4
+                doSomethingElse();
+            }
+        }
     }
 
     @Override
     public void run () {
-        if (idThread == 1) {
-            while (true) {
-                firstSecondMeth();
+        while (true) {
+            if (number == 1) {
+                firstSecond();
+            } else {
+                secondFirst();
             }
-        }
-        else {
-            while (true) {
-                secondFirstMeth();
-            }
+
         }
     }
 
     public static void main(String[] args) {
-            GuaranteedDeadLock th_1 = new GuaranteedDeadLock(1);
-            //GuaranteedDeadLock th_2 = new GuaranteedDeadLock(2);
-            th_1.start();
-            //th_2.start();
+        GuaranteedDeadLock th_1 = new GuaranteedDeadLock (1);
+        GuaranteedDeadLock th_2 = new GuaranteedDeadLock (2);
+        th_1.start();
+        th_2.start();
     }
 
 }
